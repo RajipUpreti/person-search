@@ -28,6 +28,7 @@ The upgrade to Next.js 16 builds upon the async API changes from Next.js 15, wit
 - **Radix UI** - Collection of accessible, unstyled UI components
 - **React Hook Form** - Performant and flexible forms library
 - **Zod** - TypeScript-first schema declaration and validation library
+- **Prisma ORM** - Database schema, migrations, and typed data access
 - **React Select** - Flexible Select Input control for React
 - **Sonner** - Lightweight toast notifications for React
 
@@ -53,7 +54,18 @@ The application requires **Node.js 20.9.0** or newer. Node.js 18 is no longer su
    pnpm install
    ```
 
-3. Create a `.env.local` file in the root directory and add any necessary environment variables.
+3. Create a `.env` or `.env.local` file in the root directory and add your database connection string:
+
+   ```bash
+   DATABASE_URL="postgresql://USER:PASSWORD@HOST:5432/person_search?schema=public"
+   ```
+
+4. Apply the checked-in Prisma migration and seed the sample users:
+
+   ```bash
+   pnpm prisma:migrate
+   pnpm prisma:seed
+   ```
 
 ### Running the Development Server
 
@@ -67,7 +79,15 @@ pnpm dev
 pnpm build    # Build for production
 pnpm start    # Start production server
 pnpm lint     # Run ESLint
+pnpm prisma:generate  # Regenerate Prisma Client
+pnpm prisma:migrate   # Apply Prisma migrations
+pnpm prisma:seed      # Seed sample users
+pnpm prisma:studio    # Open Prisma Studio
 ```
+
+## Prisma Notes
+
+The app now persists users through Prisma using the existing Next.js server actions in `app/actions/actions.ts`. The current schema is defined in `prisma/schema.prisma`, and the checked-in migration creates the `User` table plus an index on `name` for prefix search.
 
 ## How It Works (Next.js 16 & React 19.2)
 

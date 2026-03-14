@@ -24,6 +24,10 @@
 .DS_Store
 *.pem
 
+# local editor files
+.vscode/*
+!.vscode/copilot-instructions.md
+
 # debug
 npm-debug.log*
 yarn-debug.log*

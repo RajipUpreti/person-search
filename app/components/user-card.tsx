@@ -9,43 +9,43 @@ import { UserEditDialog } from './user-edit-dialog'
 
 interface UserCardProps {
   user: User
+  canWrite: boolean
 }
 
-console.log("UserCard module loaded");
-
-export default function UserCard({ user }: UserCardProps) {
+export default function UserCard({ user, canWrite }: UserCardProps) {
   if (!user || !user.name) {
-    console.error("UserCard: Invalid user object", user);
-    return <p>Error: Invalid user data</p>;
+    return <p>Invalid user data.</p>;
   }
 
   return (
-    <Card className="w-full max-w-md mx-auto">
+    <Card className="mx-auto w-full max-w-2xl overflow-hidden border shadow-sm">
       <CardHeader className="flex flex-row items-center gap-4">
-        <Avatar className="w-16 h-16">
+        <Avatar className="h-16 w-16 ring-2 ring-primary/20">
           <AvatarFallback>{user.name.split(' ').map((n) => n[0]).join('')}</AvatarFallback>
         </Avatar>
         <div className="flex flex-col">
-          <CardTitle className="text-2xl">{user.name}</CardTitle>
-          <Badge variant="secondary" className="w-fit mt-1">ID: {user.id}</Badge>
+          <CardTitle className="text-2xl tracking-tight">{user.name}</CardTitle>
+          <Badge variant="secondary" className="mt-1 w-fit">ID: {user.id}</Badge>
         </div>
       </CardHeader>
-      <CardContent className="grid gap-4">
-        <div className="flex items-center gap-2">
+      <CardContent className="grid gap-4 border-t bg-muted/20 py-5">
+        <div className="flex items-center gap-2 text-sm md:text-base">
           <Phone className="w-4 h-4 text-muted-foreground" />
           <span>{user.phoneNumber}</span>
         </div>
         {user.email && (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 text-sm md:text-base">
             <Mail className="w-4 h-4 text-muted-foreground" />
             <span>{user.email}</span>
           </div>
         )}
       </CardContent>
-      <CardFooter className="flex justify-between items-center">
-        <DeleteButton userId={user.id} />
-        <UserEditDialog user={user} /> 
-      </CardFooter>
+      {canWrite ? (
+        <CardFooter className="flex items-center justify-between border-t bg-card py-4">
+          <DeleteButton userId={user.id} />
+          <UserEditDialog user={user} />
+        </CardFooter>
+      ) : null}
     </Card>
   );
 }

@@ -5,9 +5,7 @@ import { SearchCommand } from "@/components/search-command"
 import { searchUsers } from '@/app/actions/actions'
 import { User } from "../actions/schemas"
 
-
-
-export default function SearchInput() {
+export default function SearchInput({ className }: { className?: string }) {
   const handleSearch = React.useCallback(async (value: string) => {
     return searchUsers(value)
   }, [])
@@ -21,7 +19,7 @@ export default function SearchInput() {
   }, [])
 
   return (
-    <div className="w-full max-w-md mx-auto">
+    <div className={className ?? 'w-full'}>
       <SearchCommand<User>
         onSearch={handleSearch}
         onItemSelect={handleSelect}

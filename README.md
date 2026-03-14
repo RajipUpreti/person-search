@@ -60,6 +60,14 @@ The application requires **Node.js 20.9.0** or newer. Node.js 18 is no longer su
    DATABASE_URL="postgresql://USER:PASSWORD@HOST:5432/person_search?schema=public"
    ```
 
+  For Google auth (Auth.js v5), also add:
+
+  ```bash
+  GOOGLE_CLIENT_ID="your-google-client-id"
+  GOOGLE_CLIENT_SECRET="your-google-client-secret"
+  BETTER_AUTH_SECRET="a-random-long-secret"
+  ```
+
 4. Apply the checked-in Prisma migration and seed the sample users:
 
    ```bash
@@ -72,6 +80,12 @@ The application requires **Node.js 20.9.0** or newer. Node.js 18 is no longer su
 ```bash
 pnpm dev
 ```
+
+### Google Auth
+
+- Auth route: `/api/auth/[...nextauth]`
+- Navbar includes a basic `Sign in with Google` button.
+- After sign-in, navbar shows the current user name/email and a `Sign out` button.
 
 ### Other Commands
 

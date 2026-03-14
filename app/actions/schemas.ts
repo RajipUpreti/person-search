@@ -13,3 +13,14 @@ export type User = z.infer<typeof userSchema>
 
 export const userFormSchema = userSchema.omit({ id: true })
 export type UserFormData = z.infer<typeof userFormSchema>
+
+export const authRoleSchema = z.enum(['VIEWER', 'EDITOR', 'ADMIN'])
+export type AuthRole = z.infer<typeof authRoleSchema>
+
+export const authUserSchema = z.object({
+  email: z.string().email(),
+  name: z.string().nullable(),
+  role: authRoleSchema,
+})
+
+export type AuthUserRecord = z.infer<typeof authUserSchema>

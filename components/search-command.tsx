@@ -1,21 +1,10 @@
 'use client'
 
 import * as React from "react"
-import { useCallback, useState, useRef } from "react"
-import { Check, Loader2 } from 'lucide-react'
+import { useCallback, useEffect, useRef, useState } from "react"
+import { Check, Loader2, Search } from 'lucide-react'
 import { cn } from "@/lib/utils"
-import {
-  Command,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command"
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover"
+import { Input } from "@/components/ui/input"
 
 /**
  * Props for the SearchCommand component
@@ -113,29 +102,64 @@ export const SearchCommand = <T,>({
   const [selectedItem, setSelectedItem] = useState<T | null>(null)
   const [searchQuery, setSearchQuery] = useState("")
   const inputRef = useRef<HTMLInputElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
+  const requestIdRef = useRef(0)
 
-  const handleSearch = useCallback(async (value: string) => {
-    setSearchQuery(value)
-    
-    if (!value) {
+  useEffect(() => {
+    const handlePointerDown = (event: MouseEvent) => {
+      if (!containerRef.current?.contains(event.target as Node)) {
+        setOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handlePointerDown)
+    return () => {
+      document.removeEventListener('mousedown', handlePointerDown)
+    }
+  }, [])
+
+  useEffect(() => {
+    const normalizedQuery = searchQuery.trim()
+
+    if (!normalizedQuery) {
       setItems([])
+      setLoading(false)
       setOpen(false)
       return
     }
 
+    const currentRequestId = ++requestIdRef.current
     setLoading(true)
     setOpen(true)
-    
-    try {
-      const results = await onSearch(value)
-      setItems(results)
-    } catch (error) {
-      console.error('Error searching:', error)
-      setItems([])
-    } finally {
-      setLoading(false)
+
+    const timeoutId = window.setTimeout(async () => {
+      try {
+        const results = await onSearch(normalizedQuery)
+
+        if (requestIdRef.current === currentRequestId) {
+          setItems(results)
+          setOpen(true)
+        }
+      } catch (error) {
+        if (requestIdRef.current === currentRequestId) {
+          console.error('Error searching:', error)
+          setItems([])
+        }
+      } finally {
+        if (requestIdRef.current === currentRequestId) {
+          setLoading(false)
+        }
+      }
+    }, 200)
+
+    return () => {
+      window.clearTimeout(timeoutId)
     }
-  }, [onSearch])
+  }, [onSearch, searchQuery])
+
+  const handleInputValueChange = useCallback((value: string) => {
+    setSearchQuery(value)
+  }, [])
 
   const handleSelect = useCallback((item: T) => {
     setSelectedItem(item)
@@ -145,68 +169,66 @@ export const SearchCommand = <T,>({
   }, [getItemLabel, onItemSelect])
 
   return (
-    <div className="w-full relative">
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <div>
-            <Command 
-              className="rounded-lg border shadow-md"
-              shouldFilter={false}
-            >
-              <CommandInput 
-                ref={inputRef}
-                placeholder={placeholder}
-                value={searchQuery}
-                onValueChange={handleSearch}
-                onKeyDown={(e) => {
-                  if (e.key === 'ArrowUp' || e.key === 'ArrowDown' || e.key === 'Enter') {
-                    e.stopPropagation()
-                  }
-                }}
-              />
-            </Command>
-          </div>
-        </PopoverTrigger>
-        <PopoverContent 
-          className="w-[--radix-popover-trigger-width] p-0" 
-          align="start"
-          onOpenAutoFocus={(e) => e.preventDefault()}
-        >
-          {(items.length > 0 || loading) && (
-            <Command shouldFilter={false}>
-              <CommandList>
-                <CommandGroup>
-                  {loading ? (
-                    <CommandItem disabled className="flex items-center gap-2 py-6 justify-center">
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      Searching...
-                    </CommandItem>
-                  ) : items.length === 0 ? (
-                    <CommandItem disabled>{noResultsText}</CommandItem>
-                  ) : (
-                    items.map((item) => (
-                      <CommandItem
-                        key={getItemId(item)}
-                        value={getItemId(item)}
-                        onSelect={() => handleSelect(item)}
-                        onMouseMove={() => inputRef.current?.focus()}
-                      >
-                        <Check
-                          className={cn(
-                            "mr-2 h-4 w-4",
-                            selectedItem && getItemId(selectedItem) === getItemId(item) ? "opacity-100" : "opacity-0"
-                          )}
-                        />
-                        {getItemLabel(item)}
-                      </CommandItem>
-                    ))
-                  )}
-                </CommandGroup>
-              </CommandList>
-            </Command>
+    <div ref={containerRef} className="relative w-full">
+      <div className="flex items-center rounded-lg border bg-background px-3 shadow-md">
+        <Search className="mr-2 h-4 w-4 shrink-0 text-muted-foreground" />
+        <Input
+          ref={inputRef}
+          placeholder={placeholder}
+          value={searchQuery}
+          onChange={(event) => handleInputValueChange(event.target.value)}
+          onFocus={() => {
+            if (searchQuery && (items.length > 0 || loading)) {
+              setOpen(true)
+            }
+          }}
+          autoComplete="off"
+          spellCheck={false}
+          className="h-10 border-0 bg-transparent px-0 shadow-none focus-visible:ring-0"
+          onKeyDown={(e) => {
+            if (e.key === 'ArrowUp' || e.key === 'ArrowDown' || e.key === 'Enter') {
+              e.stopPropagation()
+            }
+            if (e.key === 'Escape') {
+              setOpen(false)
+            }
+          }}
+        />
+      </div>
+
+      {open && (items.length > 0 || loading) ? (
+        <div className="absolute top-full z-50 mt-2 w-full rounded-lg border bg-popover text-popover-foreground shadow-md">
+          {loading ? (
+            <div className="flex items-center justify-center gap-2 px-4 py-6 text-sm text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Searching...
+            </div>
+          ) : items.length === 0 ? (
+            <div className="px-4 py-6 text-sm text-muted-foreground">{noResultsText}</div>
+          ) : (
+            <ul className="max-h-[300px] overflow-y-auto py-1">
+              {items.map((item) => (
+                <li key={getItemId(item)}>
+                  <button
+                    type="button"
+                    className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm hover:bg-accent hover:text-accent-foreground"
+                    onMouseDown={(event) => event.preventDefault()}
+                    onClick={() => handleSelect(item)}
+                  >
+                    <Check
+                      className={cn(
+                        "h-4 w-4",
+                        selectedItem && getItemId(selectedItem) === getItemId(item) ? "opacity-100" : "opacity-0"
+                      )}
+                    />
+                    <span>{getItemLabel(item)}</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
           )}
-        </PopoverContent>
-      </Popover>
+        </div>
+      ) : null}
     </div>
   )
 }

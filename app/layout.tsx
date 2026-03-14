@@ -5,6 +5,7 @@ import "./globals.css";
 import Navbar from "./components/navbar";
 import Footer from "./components/footer";
 import { ThemeProvider } from "@/components/theme-provider";
+import AuthSessionProvider from './components/auth-session-provider'
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,28 +29,24 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning={true}>
-    <body
-      className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen`}
-    >          
-
-<ThemeProvider
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen`}
+      >
+        <AuthSessionProvider>
+          <ThemeProvider
             attribute="class"
             defaultTheme="system"
             enableSystem
             disableTransitionOnChange
           >
-
-        <Navbar />
-        <main className="flex-grow">
-          {children}
-        </main>
-        <Toaster />
-
-        <Footer />
-        </ThemeProvider>
-
-    </body>
-
-  </html>  );
+            <Navbar />
+            <main className="flex-grow">{children}</main>
+            <Toaster />
+            <Footer />
+          </ThemeProvider>
+        </AuthSessionProvider>
+      </body>
+    </html>
+  );
 }
 

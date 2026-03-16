@@ -7,7 +7,7 @@ import { getCurrentAuthUserRole, listUsers } from './actions/actions';
 import { AuthUserRoleManager } from './components/auth-user-role-manager';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Lock, Search, ShieldCheck } from 'lucide-react';
+import { Lock, Search, ShieldCheck, Github } from 'lucide-react';
 import AllUsersDialog from './components/all-users-dialog';
 
 export default async function Home({ searchParams }: { searchParams: Promise<{ userId?: string; showAll?: string; manageRoles?: string }> }) {
@@ -45,6 +45,12 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ u
             <Badge variant="outline" className="gap-1 px-3 py-1 text-xs">
               <Search className="h-3.5 w-3.5" />
               Public Search Enabled
+            </Badge>
+            <Badge variant="outline" className="gap-1 px-3 py-1 text-xs" asChild>
+              <Link href="https://github.com/RajipUpreti/person-search" target="_blank" rel="noopener noreferrer">
+                <Github className="h-3.5 w-3.5" />
+                View on GitHub
+              </Link>
             </Badge>
           </div>
 
